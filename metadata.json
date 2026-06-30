@@ -1,0 +1,6 @@
+{
+  "name": "Heart of 真心株式会社",
+  "description": "住宅型有料老人ホーム「ほうらぁさ家」、デイサービス「きゅっきゅ」、居宅介護支援「まごころ相談支援センター」を運営するHeart of 真心株式会社の公式ホームページです。清潔感と温かみのある信頼できるデザインを提供します。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
