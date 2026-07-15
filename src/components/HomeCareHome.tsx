@@ -8,17 +8,48 @@ interface HomeCareHomeProps {
 
 export default function HomeCareHome({ vacancies }: HomeCareHomeProps) {
   // Calculator States
-  const [selectedRoom, setSelectedRoom] = useState<number>(115000); // base price for room A
-  const [addMeals, setAddMeals] = useState<boolean>(true); // meal plan (¥48,000)
-  const [addLaundry, setAddLaundry] = useState<boolean>(false); // optional laundry service (¥8,000)
+  const [planType, setPlanType] = useState<'normal' | 'welfare'>('normal');
+  const [roomType, setRoomType] = useState<'A' | 'B'>('A');
+  const [rentAmount, setRentAmount] = useState<number>(32000); // Default rent for Type A (Normal)
+  const [addMeals, setAddMeals] = useState<boolean>(true); // meal plan
+  const [laundryTimes, setLaundryTimes] = useState<number>(0); // Number of washes per month (300 yen each)
   const [addHygiene, setAddHygiene] = useState<boolean>(false); // optional diaper disposal service (¥5,000)
   const [careLevel, setCareLevel] = useState<number>(0); // self-pay depending on care level
 
-  const baseMealsPrice = 48000;
-  const optionalLaundryPrice = 8000;
+  const isWelfare = planType === 'welfare';
+
+  // Dynamic values based on planType & roomType
+  const utilitiesPrice = isWelfare 
+    ? (roomType === 'A' ? 15000 : 30000)
+    : (roomType === 'A' ? 20000 : 30000);
+
+  const managementPrice = isWelfare
+    ? (roomType === 'A' ? 15000 : 30000)
+    : (roomType === 'A' ? 20000 : 40000);
+
+  const mealsPrice = roomType === 'A' ? 45000 : 90000;
+
   const optionalHygienePrice = 5000;
 
-  const totalMonthlyCost = selectedRoom + (addMeals ? baseMealsPrice : 0) + (addLaundry ? optionalLaundryPrice : 0) + (addHygiene ? optionalHygienePrice : 0) + careLevel;
+  const handlePlanTypeChange = (plan: 'normal' | 'welfare') => {
+    setPlanType(plan);
+    if (plan === 'welfare') {
+      setRentAmount(roomType === 'A' ? 31600 : 38000);
+    } else {
+      setRentAmount(roomType === 'A' ? 32000 : 42000);
+    }
+  };
+
+  const handleRoomTypeChange = (type: 'A' | 'B') => {
+    setRoomType(type);
+    if (planType === 'welfare') {
+      setRentAmount(type === 'A' ? 31600 : 38000);
+    } else {
+      setRentAmount(type === 'A' ? 32000 : 42000);
+    }
+  };
+
+  const totalMonthlyCost = rentAmount + utilitiesPrice + managementPrice + (addMeals ? mealsPrice : 0) + (laundryTimes * 300) + (addHygiene ? optionalHygienePrice : 0) + careLevel;
 
   // Filter FAQs for home
   const homeFaqs = INITIAL_FAQS.filter(f => f.category === 'home');
@@ -102,7 +133,7 @@ export default function HomeCareHome({ vacancies }: HomeCareHomeProps) {
           <span className="text-emerald-600 font-bold text-xs uppercase tracking-wider block">ROOMS & FACILITIES</span>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-800">快適なプライベート居室とバリアフリー設備</h2>
           <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-            全33室がすべて個室です。各部屋には、エアコン、ナースコール、車椅子対応洗面台、照明、カーテン、収納が標準完備されています。
+            お一人用の個室（タイプA）から、ご夫婦など2名様で一緒に暮らせるお部屋（タイプB）まで、ご利用者様の生活スタイルに合わせたお部屋をお選びいただけます。各お部屋にはエアコン、ナースコール、車椅子対応洗面台、照明、カーテン、収納が完備されています。
           </p>
           <ul className="space-y-2.5 text-xs sm:text-sm text-slate-700 font-semibold">
             <li className="flex items-center gap-2">
@@ -174,29 +205,159 @@ export default function HomeCareHome({ vacancies }: HomeCareHomeProps) {
               <DollarSign className="w-5 h-5 text-emerald-600" />
               <span>基本月額利用料の内訳</span>
             </h3>
-            <div className="space-y-3.5 text-xs sm:text-sm text-slate-700">
+
+            {/* Tab switch for Plan Type */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">1. プラン区分を選択</span>
+              <div className="flex bg-emerald-100/50 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => handlePlanTypeChange('normal')}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    planType === 'normal'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-emerald-800 hover:bg-emerald-100/30'
+                  }`}
+                >
+                  通常プラン
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePlanTypeChange('welfare')}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    planType === 'welfare'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-emerald-800 hover:bg-emerald-100/30'
+                  }`}
+                >
+                  生活保護プラン
+                </button>
+              </div>
+            </div>
+
+            {/* Tab switch for Room Type */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">2. お部屋タイプを選択</span>
+              <div className="flex bg-emerald-100/50 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => handleRoomTypeChange('A')}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    roomType === 'A'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-emerald-800 hover:bg-emerald-100/30'
+                  }`}
+                >
+                  {planType === 'normal' ? 'タイプA (1人部屋)' : '生活保護Aタイプ'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRoomTypeChange('B')}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    roomType === 'B'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-emerald-800 hover:bg-emerald-100/30'
+                  }`}
+                >
+                  {planType === 'normal' ? 'タイプB (2人部屋/2名)' : '生活保護Bタイプ'}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3.5 text-xs sm:text-sm text-slate-700 pt-2">
               <div className="flex justify-between pb-2.5 border-b border-emerald-100/60">
                 <span>家賃（非課税）</span>
-                <span className="font-mono font-bold text-slate-800">¥55,000 〜 ¥65,000 / 月</span>
+                <span className="font-mono font-bold text-slate-800">
+                  {isWelfare
+                    ? (roomType === 'A' ? '¥31,600' : '¥38,000')
+                    : (roomType === 'A' ? '¥32,000 〜 ¥33,000' : '¥42,000 〜 ¥50,000')} / 月
+                </span>
               </div>
               <div className="flex justify-between pb-2.5 border-b border-emerald-100/60">
-                <span>管理費（共用光熱水費・維持管理）</span>
-                <span className="font-mono font-bold text-slate-800">¥35,000 / 月</span>
+                <span>光熱費</span>
+                <span className="font-mono font-bold text-slate-800">
+                  ¥{utilitiesPrice.toLocaleString()} / 月
+                </span>
               </div>
               <div className="flex justify-between pb-2.5 border-b border-emerald-100/60">
-                <span>生活サポート・見守り費</span>
-                <span className="font-mono font-bold text-slate-800">¥25,000 / 月</span>
+                <span>管理費</span>
+                <span className="font-mono font-bold text-slate-800">
+                  ¥{managementPrice.toLocaleString()} / 月
+                </span>
               </div>
               <div className="flex justify-between pb-2.5 border-b border-emerald-100/60">
-                <span>食費（3食手作り・1ヶ月計算）</span>
-                <span className="font-mono font-bold text-slate-800">¥48,000 / 月</span>
+                <span>食費（おやつ代込み）</span>
+                <span className="font-mono font-bold text-slate-800">
+                  ¥{mealsPrice.toLocaleString()} / 月
+                </span>
               </div>
               <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
                 <div className="flex justify-between font-extrabold text-emerald-800 text-sm sm:text-base">
-                  <span>標準的な基本月額合計</span>
-                  <span className="font-mono">¥163,000 / 月</span>
+                  <span>基本月額合計（目安）</span>
+                  <span className="font-mono text-emerald-900 font-extrabold">
+                    {isWelfare
+                      ? (roomType === 'A' ? '¥106,600' : '¥188,000')
+                      : (roomType === 'A' ? '¥117,000 〜 ¥118,000' : '¥202,000 〜 ¥210,000')} / 月
+                  </span>
                 </div>
-                <span className="text-[10px] text-emerald-600 block mt-1.5">※ 入居時費用：敷金として家賃2ヶ月分（退去時、修繕費を除き全額返還）のみ。入居一時金（礼金）は ¥0 です。</span>
+                <span className="text-[10px] text-emerald-600 block mt-1.5 leading-relaxed">
+                  ※ 入居時費用：敷金として家賃2ヶ月分のみ（礼金 ¥0）。<br />
+                  {roomType === 'B' && '※ タイプBは、2人部屋に2名でご入居された場合の1部屋あたりの合計金額となります。'}
+                </span>
+              </div>
+            </div>
+
+            {/* 別途かかる費用・オプションのご案内 */}
+            <div className="bg-white border border-slate-100 rounded-3xl p-5.5 space-y-4 shadow-2xs">
+              <div>
+                <h4 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
+                  <span className="w-1.5 h-3 bg-emerald-500 rounded-full"></span>
+                  <span>選択可能なオプション</span>
+                </h4>
+                <div className="mt-2 text-xs text-slate-700 space-y-1">
+                  <div className="flex justify-between font-semibold">
+                    <span>洗濯サービス</span>
+                    <span className="font-mono text-slate-800 font-bold">¥300 / 回</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">※ご自身またはご家族様にてお洗濯を行われる場合は不要です。</p>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-3.5">
+                <h4 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
+                  <span className="w-1.5 h-3 bg-emerald-500 rounded-full"></span>
+                  <span>別途かかる費用</span>
+                </h4>
+                <div className="mt-2.5 space-y-2.5 text-xs text-slate-700">
+                  <div className="space-y-0.5">
+                    <span className="font-semibold text-slate-800 block">① 消耗品（生活必要備品など）</span>
+                    <span className="text-[10px] text-slate-500 block leading-relaxed">
+                      ※ ご家族様にて手配・お持ち込みいただく場合は不要です。
+                    </span>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="font-semibold text-slate-800 block">② 往診代・お薬代</span>
+                    <span className="text-[10px] text-slate-500 block leading-relaxed">
+                      ※ 往診および薬剤料に関しては、提携医療機関・調剤薬局へ直接お支払いいただく形となります。
+                    </span>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="font-semibold text-slate-800 block">③ 買い物代行代</span>
+                    <span className="text-[10px] text-slate-500 block leading-relaxed">
+                      ※ ご家族様にて対応・お届けいただく場合は不要です。
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-3.5 bg-emerald-50/40 -mx-5.5 -mb-5.5 p-5.5 rounded-b-3xl">
+                <h4 className="font-bold text-emerald-800 text-xs sm:text-sm flex items-center gap-1.5">
+                  <span className="w-1.5 h-3 bg-emerald-600 rounded-full"></span>
+                  <span>入浴等の介護サービスについて</span>
+                </h4>
+                <p className="text-[11px] text-emerald-700 mt-1.5 leading-relaxed font-semibold">
+                  入浴やその他の介護サービス等は、併設または系列法人のデイサービスがスムーズにご利用いただけます。
+                </p>
               </div>
             </div>
           </div>
@@ -211,33 +372,129 @@ export default function HomeCareHome({ vacancies }: HomeCareHomeProps) {
 
             {/* Inputs */}
             <div className="space-y-4">
-              {/* Room type selection */}
+              {/* Plan type selection */}
               <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-500 block">1. お部屋タイプの選択</span>
+                <span className="text-xs font-bold text-slate-500 block">1. プランの選択</span>
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => setSelectedRoom(115000)} // Room cost: 115000 (Rent 55000 + Support 25000 + Management 35000)
+                    type="button"
+                    onClick={() => handlePlanTypeChange('normal')}
                     className={`p-3.5 rounded-xl border text-left transition-all ${
-                      selectedRoom === 115000
+                      planType === 'normal'
                         ? 'border-emerald-500 bg-emerald-50/30 ring-2 ring-emerald-500/10'
                         : 'border-slate-100 hover:border-slate-200'
                     }`}
                   >
-                    <span className="font-bold text-slate-800 text-sm block">標準個室</span>
-                    <span className="text-xs text-slate-500 font-mono mt-0.5 block">基本料: ¥115,000/月</span>
+                    <span className="font-bold text-slate-800 text-sm block">通常プラン</span>
+                    <span className="text-xs text-slate-500 font-mono mt-0.5 block">一般の方向け</span>
                   </button>
                   <button
-                    onClick={() => setSelectedRoom(125000)} // Room cost: 125000 (Rent 65000 + Support 25000 + Management 35000)
+                    type="button"
+                    onClick={() => handlePlanTypeChange('welfare')}
                     className={`p-3.5 rounded-xl border text-left transition-all ${
-                      selectedRoom === 125000
+                      planType === 'welfare'
                         ? 'border-emerald-500 bg-emerald-50/30 ring-2 ring-emerald-500/10'
                         : 'border-slate-100 hover:border-slate-200'
                     }`}
                   >
-                    <span className="font-bold text-slate-800 text-sm block">南向き・広め個室</span>
-                    <span className="text-xs text-slate-500 font-mono mt-0.5 block">基本料: ¥125,000/月</span>
+                    <span className="font-bold text-slate-800 text-sm block">生活保護プラン</span>
+                    <span className="text-xs text-slate-500 font-mono mt-0.5 block">生活保護受給の方向け</span>
                   </button>
                 </div>
+              </div>
+
+              {/* Room type selection */}
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-500 block">2. お部屋タイプの選択</span>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleRoomTypeChange('A')}
+                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                      roomType === 'A'
+                        ? 'border-emerald-500 bg-emerald-50/30 ring-2 ring-emerald-500/10'
+                        : 'border-slate-100 hover:border-slate-200'
+                    }`}
+                  >
+                    <span className="font-bold text-slate-800 text-sm block">
+                      {planType === 'normal' ? 'タイプA (1人部屋)' : '生活保護Aタイプ'}
+                    </span>
+                    <span className="text-xs text-slate-500 font-mono mt-0.5 block">
+                      家賃: {planType === 'normal' ? '¥32,000 〜 ¥33,000' : '¥31,600'}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRoomTypeChange('B')}
+                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                      roomType === 'B'
+                        ? 'border-emerald-500 bg-emerald-50/30 ring-2 ring-emerald-500/10'
+                        : 'border-slate-100 hover:border-slate-200'
+                    }`}
+                  >
+                    <span className="font-bold text-slate-800 text-sm block">
+                      {planType === 'normal' ? 'タイプB (2人部屋・2名)' : '生活保護Bタイプ'}
+                    </span>
+                    <span className="text-xs text-slate-500 font-mono mt-0.5 block">
+                      家賃: {planType === 'normal' ? '¥42,000 〜 ¥50,000' : '¥38,000'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Rent adjustment */}
+              <div className="space-y-2 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-600">家賃設定：</span>
+                  <span className="text-sm font-mono font-bold text-slate-800">¥{rentAmount.toLocaleString()} / 月</span>
+                </div>
+                {isWelfare ? (
+                  <p className="text-xs text-emerald-600 font-medium mt-1">
+                    ※ 生活保護の家賃基準に基づき、家賃は固定となります。
+                  </p>
+                ) : roomType === 'A' ? (
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setRentAmount(32000)}
+                      className={`py-1.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
+                        rentAmount === 32000
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      32,000円
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRentAmount(33000)}
+                      className={`py-1.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
+                        rentAmount === 33000
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      33,000円
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2 mt-1">
+                    <input
+                      type="range"
+                      min={42000}
+                      max={50000}
+                      step={1000}
+                      value={rentAmount}
+                      onChange={(e) => setRentAmount(Number(e.target.value))}
+                      className="w-full accent-emerald-600 cursor-pointer h-2 bg-slate-200 rounded-lg appearance-none"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-500 font-medium">
+                      <span>42,000円</span>
+                      <span>46,000円</span>
+                      <span>50,000円</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Options */}
@@ -252,35 +509,54 @@ export default function HomeCareHome({ vacancies }: HomeCareHomeProps) {
                         onChange={(e) => setAddMeals(e.target.checked)}
                         className="rounded text-emerald-600 focus:ring-emerald-500 w-4.5 h-4.5"
                       />
-                      <span className="text-xs sm:text-sm font-semibold text-slate-700">食事提供サービス（1日3食）</span>
+                      <span className="text-xs sm:text-sm font-semibold text-slate-700">食事提供サービス（おやつ代込み）</span>
                     </div>
-                    <span className="font-mono text-xs sm:text-sm font-bold text-slate-800">+¥48,000 / 月</span>
+                    <span className="font-mono text-xs sm:text-sm font-bold text-slate-800">+¥{mealsPrice.toLocaleString()} / 月</span>
                   </label>
 
-                  <label className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/30 cursor-pointer hover:bg-slate-50/70 select-none">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={addLaundry}
-                        onChange={(e) => setAddLaundry(e.target.checked)}
-                        className="rounded text-emerald-600 focus:ring-emerald-500 w-4.5 h-4.5"
-                      />
-                      <span className="text-xs sm:text-sm font-semibold text-slate-700">お洗濯・お布団丸洗いパック</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/30 gap-2">
+                    <div className="space-y-0.5 text-left">
+                      <span className="text-xs sm:text-sm font-semibold text-slate-700 block">洗濯サービス（1回300円）</span>
+                      <span className="text-[10px] text-slate-500 block">※ご家族様で対応される場合は0回</span>
                     </div>
-                    <span className="font-mono text-xs sm:text-sm font-bold text-slate-800">+¥8,000 / 月</span>
-                  </label>
+                    <div className="flex items-center justify-between sm:justify-end gap-2.5">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setLaundryTimes(Math.max(0, laundryTimes - 1))}
+                          className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center font-bold text-slate-600 bg-white hover:bg-slate-50 text-sm transition-all shadow-3xs"
+                        >
+                          -
+                        </button>
+                        <span className="font-mono font-bold text-xs sm:text-sm text-slate-800 w-8 text-center">{laundryTimes}回</span>
+                        <button
+                          type="button"
+                          onClick={() => setLaundryTimes(Math.min(30, laundryTimes + 1))}
+                          className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center font-bold text-slate-600 bg-white hover:bg-slate-50 text-sm transition-all shadow-3xs"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="font-mono text-xs sm:text-sm font-bold text-emerald-700 shrink-0 min-w-[70px] text-right">
+                        +¥{(laundryTimes * 300).toLocaleString()} / 月
+                      </span>
+                    </div>
+                  </div>
 
-                  <label className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/30 cursor-pointer hover:bg-slate-50/70 select-none">
-                    <div className="flex items-center gap-2">
+                  <label className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/30 cursor-pointer hover:bg-slate-50/70 select-none">
+                    <div className="flex items-start gap-2.5 text-left">
                       <input
                         type="checkbox"
                         checked={addHygiene}
                         onChange={(e) => setAddHygiene(e.target.checked)}
-                        className="rounded text-emerald-600 focus:ring-emerald-500 w-4.5 h-4.5"
+                        className="rounded text-emerald-600 focus:ring-emerald-500 w-4.5 h-4.5 mt-0.5 shrink-0"
                       />
-                      <span className="text-xs sm:text-sm font-semibold text-slate-700">日常衛生消耗品・オムツ処分</span>
+                      <div className="space-y-0.5">
+                        <span className="text-xs sm:text-sm font-semibold text-slate-700 block">① 消耗品パック（生活必要備品など）</span>
+                        <span className="text-[10px] text-slate-500 block">※ご家族様で手配される場合は不要（チェック不要）</span>
+                      </div>
                     </div>
-                    <span className="font-mono text-xs sm:text-sm font-bold text-slate-800">+¥5,000 / 月</span>
+                    <span className="font-mono text-xs sm:text-sm font-bold text-slate-800 shrink-0 ml-2">+¥5,000 / 月</span>
                   </label>
                 </div>
               </div>

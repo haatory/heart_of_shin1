@@ -36,9 +36,20 @@ export default function AdminPortal({
   const [newIsImportant, setNewIsImportant] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Password-less entry for demonstration ease, but styled with a warning
-  const handleDemoLogin = () => {
-    setAdminLoggedIn(true);
+  // Password-based authentication
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleLoginSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const correctPassword = 'tknr1115'; // Administrator Password
+    if (password === correctPassword) {
+      setAdminLoggedIn(true);
+      setPasswordError('');
+    } else {
+      setPasswordError('パスワードが正しくありません。もう一度入力してください。');
+    }
   };
 
   const handlePublishNews = (e: FormEvent) => {
@@ -108,25 +119,49 @@ export default function AdminPortal({
         <div className="bg-white rounded-3xl shadow-xl border border-emerald-50 overflow-hidden">
           <div className="bg-gradient-to-r from-emerald-600 to-blue-500 text-white p-8 text-center">
             <Shield className="w-16 h-16 mx-auto mb-4 animate-pulse text-emerald-100" />
-            <h1 className="text-2xl sm:text-3xl font-bold">HP管理者ポータル（デモ用）</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">HP管理者ポータル</h1>
             <p className="text-emerald-100 text-sm mt-2">
-              お問い合わせ・採用応募の受信確認や、空室状況の更新、お知らせの新規投稿をリアルタイムでテストできます。
+              お問い合わせ・採用応募の受信確認や、空室状況の更新、お知らせの新規投稿を管理できます。
             </p>
           </div>
           <div className="p-8 sm:p-12 text-center space-y-6">
-            <div className="max-w-md mx-auto space-y-4">
-              <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-xs sm:text-sm text-left leading-relaxed">
-                <span className="font-bold block mb-1">💡 テスト用の簡単アクセス：</span>
-                この管理画面は、ホームページの動作検証をしていただくために用意されています。ログインボタンを押すだけで、パスワードを入力せず安全に管理画面を操作していただけます。
+            <form onSubmit={handleLoginSubmit} className="max-w-md mx-auto space-y-4 text-left">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 block">管理者パスワード</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="パスワードを入力してください"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono text-slate-800"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold"
+                  >
+                    {showPassword ? "非表示" : "表示"}
+                  </button>
+                </div>
+                {passwordError && (
+                  <p className="text-red-500 text-xs font-semibold flex items-center gap-1 mt-1">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                    {passwordError}
+                  </p>
+                )}
               </div>
+
+
               <button
-                onClick={handleDemoLogin}
-                className="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl hover:bg-emerald-700 transition-colors shadow-md hover:shadow-lg text-lg flex items-center justify-center gap-2"
+                type="submit"
+                className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition-colors shadow-md hover:shadow-lg text-base flex items-center justify-center gap-2 mt-4"
                 id="admin-demo-login-btn"
               >
-                <span>管理者ポータルへログインする</span>
+                <span>パスワード認証してログイン</span>
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>

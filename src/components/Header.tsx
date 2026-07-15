@@ -71,7 +71,7 @@ export default function Header({ activeTab, setActiveTab }: HeaderProps) {
               <Heart className="w-6 h-6 fill-white" />
             </div>
             <div>
-              <span className="text-xs font-bold tracking-wider text-emerald-600 block">HEART OF MAGOKORO</span>
+              <span className="text-xs font-bold tracking-wider text-emerald-600 block">ハートオブシンカブシキガイシャ</span>
               <span className="text-lg sm:text-xl font-bold text-slate-800 leading-tight block">
                 Heart of 真心株式会社
               </span>

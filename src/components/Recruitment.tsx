@@ -23,10 +23,34 @@ export default function Recruitment({ applications, setApplications }: Recruitme
 
   // Submission Feedback State
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmitApplication = (e: FormEvent) => {
+  const handleSubmitApplication = async (e: FormEvent) => {
     e.preventDefault();
     if (!name || !email || !phone) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Send recruitment application to our backend server API to trigger real email notification
+      await fetch('/api/recruitment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          furigana,
+          email,
+          phone,
+          desiredJob,
+          qualifications,
+          message,
+        }),
+      });
+    } catch (err) {
+      console.error('Error submitting recruitment application to server:', err);
+    }
 
     const newApp: JobApplication = {
       id: `app-${Date.now()}`,
@@ -53,6 +77,7 @@ export default function Recruitment({ applications, setApplications }: Recruitme
     setQualifications('');
     setMessage('');
 
+    setIsSubmitting(false);
     setIsSubmitted(true);
   };
 
@@ -390,11 +415,14 @@ export default function Recruitment({ applications, setApplications }: Recruitme
 
             <button
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm sm:text-base flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+              className={`w-full text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm sm:text-base flex items-center justify-center gap-2 ${
+                isSubmitting ? 'bg-emerald-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'
+              }`}
               id="submit-recruitment-form"
             >
               <CheckCircle2 className="w-5 h-5 text-emerald-100" />
-              <span>この内容で応募エントリーする</span>
+              <span>{isSubmitting ? '送信中...' : 'この内容で応募エントリーする'}</span>
             </button>
           </form>
         )}

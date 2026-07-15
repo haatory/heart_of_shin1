@@ -17,10 +17,32 @@ export default function ContactSection({ inquiries, setInquiries }: ContactSecti
 
   // Submission Status
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmitInquiry = (e: FormEvent) => {
+  const handleSubmitInquiry = async (e: FormEvent) => {
     e.preventDefault();
     if (!name || !email || !phone || !message) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Send the inquiry to our backend server API to trigger real email notification
+      await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          category,
+          message,
+        }),
+      });
+    } catch (err) {
+      console.error('Error submitting inquiry to server:', err);
+    }
 
     const newInq: ContactInquiry = {
       id: `inq-${Date.now()}`,
@@ -43,6 +65,7 @@ export default function ContactSection({ inquiries, setInquiries }: ContactSecti
     setPhone('');
     setMessage('');
 
+    setIsSubmitting(false);
     setIsSubmitted(true);
   };
 
@@ -220,10 +243,13 @@ export default function ContactSection({ inquiries, setInquiries }: ContactSecti
 
               <button
                 type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm sm:text-base flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className={`w-full text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm sm:text-base flex items-center justify-center gap-2 ${
+                  isSubmitting ? 'bg-emerald-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'
+                }`}
                 id="submit-contact-form"
               >
-                <span>お問い合わせを送信する</span>
+                <span>{isSubmitting ? '送信中...' : 'お問い合わせを送信する'}</span>
               </button>
             </form>
           )}
